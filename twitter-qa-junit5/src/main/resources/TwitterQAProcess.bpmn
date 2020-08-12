@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0vp1ens" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.1.1">
+  <bpmn:collaboration id="Collaboration_1ggv7jd">
+    <bpmn:participant id="TwitterQAProcessParticipant" name="Twitter QA process" processRef="TwitterQAProcess" />
+  </bpmn:collaboration>
+  <bpmn:process id="TwitterQAProcess" name="Twitter QA" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1nr3poy">
+      <bpmn:lane id="Lane_0w8k51t">
+        <bpmn:flowNodeRef>TweetWrittenStartEvent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TweetApprovedGateway</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TweetPublishedEndEvent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>TweetRejectedEndEvent</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>PublishTweetTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>InformWriterAboutRejectionTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0eflzkq</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0lhvri3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1j8rlqb</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_1st0pi9</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CheckTweetTask</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_1pmfkv8</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="TweetWrittenStartEvent" name="Tweet written" camunda:formKey="embedded:app:forms/start-form.html">
+      <bpmn:outgoing>Flow_0she089</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="TweetApprovedGateway" name="Tweet approved?">
+      <bpmn:incoming>Flow_1fhkykr</bpmn:incoming>
+      <bpmn:outgoing>NoSequenceFlow</bpmn:outgoing>
+      <bpmn:outgoing>YesSequenceFlow</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="TweetPublishedEndEvent" name="Tweet published">
+      <bpmn:incoming>Flow_0z8daqh</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="TweetRejectedEndEvent" name="Tweet rejected">
+      <bpmn:incoming>Flow_1h9xt3s</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="PublishTweetTask" name="Publish tweet" camunda:asyncBefore="true" camunda:delegateExpression="${createTweetDelegate}">
+      <bpmn:extensionElements>
+        <camunda:failedJobRetryTimeCycle>R3/PT10S</camunda:failedJobRetryTimeCycle>
+      </bpmn:extensionElements>
+      <bpmn:incoming>YesSequenceFlow</bpmn:incoming>
+      <bpmn:incoming>Flow_05aboq4</bpmn:incoming>
+      <bpmn:outgoing>Flow_0z8daqh</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="InformWriterAboutRejectionTask" name="Inform writer about rejection" camunda:type="external" camunda:topic="notification">
+      <bpmn:incoming>NoSequenceFlow</bpmn:incoming>
+      <bpmn:outgoing>Flow_1h9xt3s</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:startEvent id="Event_0eflzkq" name="Tweet written by super user">
+      <bpmn:outgoing>Flow_05aboq4</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0fgjnbh" messageRef="Message_05y2gk8" />
+    </bpmn:startEvent>
+    <bpmn:endEvent id="Event_0lhvri3" name="Tweet withdrawn">
+      <bpmn:incoming>Flow_1kihbce</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_1j8rlqb" name="Amend tweet">
+      <bpmn:incoming>Flow_0djk0nb</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wyd7hu</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Event_1st0pi9" name="Duplicated tweet" attachedToRef="PublishTweetTask">
+      <bpmn:outgoing>Flow_0djk0nb</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0747wt8" errorRef="Error_0whcmgo" camunda:errorCodeVariable="errorCode" camunda:errorMessageVariable="errorMessage" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_1h9xt3s" sourceRef="InformWriterAboutRejectionTask" targetRef="TweetRejectedEndEvent" />
+    <bpmn:sequenceFlow id="Flow_0z8daqh" sourceRef="PublishTweetTask" targetRef="TweetPublishedEndEvent" />
+    <bpmn:sequenceFlow id="YesSequenceFlow" name="yes" sourceRef="TweetApprovedGateway" targetRef="PublishTweetTask">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="NoSequenceFlow" name="no" sourceRef="TweetApprovedGateway" targetRef="InformWriterAboutRejectionTask">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${not approved}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1fhkykr" sourceRef="CheckTweetTask" targetRef="TweetApprovedGateway" />
+    <bpmn:sequenceFlow id="Flow_0she089" sourceRef="TweetWrittenStartEvent" targetRef="CheckTweetTask" />
+    <bpmn:sequenceFlow id="Flow_05aboq4" sourceRef="Event_0eflzkq" targetRef="PublishTweetTask" />
+    <bpmn:sequenceFlow id="Flow_1kihbce" sourceRef="Event_1pmfkv8" targetRef="Event_0lhvri3" />
+    <bpmn:sequenceFlow id="Flow_0djk0nb" sourceRef="Event_1st0pi9" targetRef="Activity_1j8rlqb" />
+    <bpmn:sequenceFlow id="Flow_0wyd7hu" sourceRef="Activity_1j8rlqb" targetRef="CheckTweetTask" />
+    <bpmn:userTask id="CheckTweetTask" name="Check tweet" camunda:candidateGroups="management">
+      <bpmn:incoming>Flow_0she089</bpmn:incoming>
+      <bpmn:incoming>Flow_0wyd7hu</bpmn:incoming>
+      <bpmn:outgoing>Flow_1fhkykr</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="Event_1pmfkv8" name="Tweet withdrawal received" attachedToRef="CheckTweetTask">
+      <bpmn:outgoing>Flow_1kihbce</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_07ow10d" messageRef="Message_190p0mb" />
+    </bpmn:boundaryEvent>
+  </bpmn:process>
+  <bpmn:message id="Message_05y2gk8" name="superuserTweetMessage" />
+  <bpmn:message id="Message_190p0mb" name="tweetWithdrawalMessage" />
+  <bpmn:error id="Error_0whcmgo" name="Duplicate tweet" errorCode="duplicateTweetCode" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1ggv7jd">
+      <bpmndi:BPMNShape id="Participant_1wut9c9_di" bpmnElement="TwitterQAProcessParticipant" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="708" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0w8k51t_di" bpmnElement="Lane_0w8k51t" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="678" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0wyd7hu_di" bpmnElement="Flow_0wyd7hu">
+        <di:waypoint x="770" y="180" />
+        <di:waypoint x="800" y="180" />
+        <di:waypoint x="800" y="110" />
+        <di:waypoint x="320" y="110" />
+        <di:waypoint x="320" y="247" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0djk0nb_di" bpmnElement="Flow_0djk0nb">
+        <di:waypoint x="600" y="229" />
+        <di:waypoint x="600" y="180" />
+        <di:waypoint x="670" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1kihbce_di" bpmnElement="Flow_1kihbce">
+        <di:waypoint x="320" y="345" />
+        <di:waypoint x="320" y="420" />
+        <di:waypoint x="382" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05aboq4_di" bpmnElement="Flow_05aboq4">
+        <di:waypoint x="215" y="190" />
+        <di:waypoint x="550" y="190" />
+        <di:waypoint x="550" y="247" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0she089_di" bpmnElement="Flow_0she089">
+        <di:waypoint x="215" y="287" />
+        <di:waypoint x="270" y="287" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1fhkykr_di" bpmnElement="Flow_1fhkykr">
+        <di:waypoint x="370" y="287" />
+        <di:waypoint x="425" y="287" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11uwgyo_di" bpmnElement="NoSequenceFlow">
+        <di:waypoint x="450" y="312" />
+        <di:waypoint x="450" y="400" />
+        <di:waypoint x="530" y="400" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="459" y="353" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0cw6ab5_di" bpmnElement="YesSequenceFlow">
+        <di:waypoint x="475" y="287" />
+        <di:waypoint x="530" y="287" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="494" y="269" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0z8daqh_di" bpmnElement="Flow_0z8daqh">
+        <di:waypoint x="630" y="287" />
+        <di:waypoint x="692" y="287" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1h9xt3s_di" bpmnElement="Flow_1h9xt3s">
+        <di:waypoint x="630" y="400" />
+        <di:waypoint x="692" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="TweetWrittenStartEvent">
+        <dc:Bounds x="179" y="269" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="165" y="312" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1m84k7t_di" bpmnElement="TweetApprovedGateway" isMarkerVisible="true">
+        <dc:Bounds x="425" y="262" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="408" y="232" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0qt5vu9_di" bpmnElement="TweetPublishedEndEvent">
+        <dc:Bounds x="692" y="269" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="671" y="312" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0iuee2t_di" bpmnElement="TweetRejectedEndEvent">
+        <dc:Bounds x="692" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="675" y="425" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_01szbjc_di" bpmnElement="PublishTweetTask">
+        <dc:Bounds x="530" y="247" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0gwe23z_di" bpmnElement="InformWriterAboutRejectionTask">
+        <dc:Bounds x="530" y="360" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ywemqe_di" bpmnElement="Event_0eflzkq">
+        <dc:Bounds x="179" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="215" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0lhvri3_di" bpmnElement="Event_0lhvri3">
+        <dc:Bounds x="382" y="402" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="360" y="445" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12yw9rv_di" bpmnElement="Activity_1j8rlqb">
+        <dc:Bounds x="670" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_069cvy2_di" bpmnElement="CheckTweetTask">
+        <dc:Bounds x="270" y="247" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0jcqi0k_di" bpmnElement="Event_1st0pi9">
+        <dc:Bounds x="582" y="229" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="618" y="222" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0at0ff6_di" bpmnElement="Event_1pmfkv8">
+        <dc:Bounds x="302" y="309" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="278" y="352" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

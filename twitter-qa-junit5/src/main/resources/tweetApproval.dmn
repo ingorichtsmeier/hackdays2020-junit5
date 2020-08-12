@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" id="Definitions_0bf4nvp" name="DRD" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="4.1.1">
+  <decision id="tweetApproval" name="Tweet approval">
+    <decisionTable id="DecisionTable_0f3kmcn" hitPolicy="FIRST">
+      <input id="Input_1" label="Tweet">
+        <inputExpression id="InputExpression_1" typeRef="string">
+          <text>content</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_1ibewy3" label="Email">
+        <inputExpression id="LiteralExpression_1jsmrxr" typeRef="string">
+          <text>email</text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" label="Approved?" name="approved" typeRef="boolean" />
+      <rule id="DecisionRule_08dnqf8">
+        <inputEntry id="UnaryTests_12npee5">
+          <text>contains(content, "IBM")</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_01ksy28">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0mstvsn">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0g2wbou">
+        <inputEntry id="UnaryTests_092vk9w">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0vyl99p">
+          <text>"may.not.tweet@camunda.com"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0krkcqm">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0n307iu">
+        <inputEntry id="UnaryTests_0tcoyas">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1705ash">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0xgjz07">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape dmnElementRef="tweetApproval">
+        <dc:Bounds height="80" width="180" x="160" y="80" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
