@@ -102,7 +102,7 @@
     <dependency>
       <groupId>org.camunda.bpm.extension</groupId>
       <artifactId>camunda-bpm-process-test-coverage</artifactId>
-      <version>0.3.2</version>
+      <version>0.3.3-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
