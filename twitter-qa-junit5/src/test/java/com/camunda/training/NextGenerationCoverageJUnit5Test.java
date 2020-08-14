@@ -7,6 +7,7 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.test.Deployment;
 import org.camunda.bpm.engine.test.mock.Mocks;
 import org.camunda.bpm.extension.process_test_coverage.junit.extension.ProcessEngineTestCoverageExtension;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,11 @@ public class NextGenerationCoverageJUnit5Test {
   public void initTest() {
     init(processEngineExtension.getProcessEngine());
     Mocks.register("createTweetDelegate", new CreateTweetDelegate(mockedTwitterService));
+  }
+  
+  @AfterAll
+  public static void cleanUp() {
+    processEngineExtension.getProcessEngine().close();
   }
   
   @Test

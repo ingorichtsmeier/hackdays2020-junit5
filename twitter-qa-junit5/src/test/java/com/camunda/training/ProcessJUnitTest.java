@@ -13,6 +13,7 @@ import org.camunda.bpm.engine.test.Deployment;
 import org.camunda.bpm.engine.test.ProcessEngineRule;
 import org.camunda.bpm.engine.test.mock.Mocks;
 import org.camunda.bpm.extension.process_test_coverage.junit.rules.TestCoverageProcessEngineRuleBuilder;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -46,6 +47,11 @@ public class ProcessJUnitTest {
     Mocks.register("createTweetDelegate", new CreateTweetDelegate(mockedTwitterService));
   }
   
+  @AfterClass
+  public static void cleanUp() {
+    rule.getProcessEngine().close();
+  }
+  
   @Test
   @Deployment(resources = {"TwitterQAProcess.bpmn", "tweetApproval.dmn"})
   public void testHappyPath() throws TwitterException {
@@ -71,7 +77,7 @@ public class ProcessJUnitTest {
       .variables().contains(entry("tweetId", 100L));
     Mockito.verify(mockedTwitterService).publish("I did it from JUnit! Cheers Ingo 1");
   }
-  
+ 
   @Test
   @Deployment(resources = "TwitterQAProcess.bpmn")
   public void testTweetRejected() {
@@ -171,6 +177,5 @@ public class ProcessJUnitTest {
     
     assertThat(decisionTableResult.getFirstResult()).contains(entry("approved", true));
   }
-
 }
 

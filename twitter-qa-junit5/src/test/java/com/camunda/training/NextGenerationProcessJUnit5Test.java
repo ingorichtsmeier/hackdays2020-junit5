@@ -14,6 +14,7 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.test.Deployment;
 import org.camunda.bpm.engine.test.ProcessEngineExtension;
 import org.camunda.bpm.engine.test.mock.Mocks;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +39,11 @@ public class NextGenerationProcessJUnit5Test {
   public void initTest(ProcessEngine processEngine) {
     init(processEngine);
     Mocks.register("createTweetDelegate", new CreateTweetDelegate(mockedTwitterService));
+  }
+  
+  @AfterAll
+  public static void cleanUp(ProcessEngine processEngine) {
+    processEngine.close();
   }
   
   @Test
@@ -172,4 +178,5 @@ public class NextGenerationProcessJUnit5Test {
     
     assertThat(decisionTableResult.getFirstResult()).contains(entry("approved", expectedResult));
   }
+
 }
